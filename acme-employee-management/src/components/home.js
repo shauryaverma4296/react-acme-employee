@@ -87,8 +87,12 @@ const Home = () => {
             error: ErrorIcon,
             info: InfoIcon
         };
-        
-        const [openAlert, setAlertOpen] = React.useState(false);
+        var initialAlertPoupMsg = {
+            "msg": "",
+            "variant":""
+        }
+        const [openAlert, setAlertOpen] = useState(false);
+        const[openAlertMsg, setOpenAlertMsg] = useState(initialAlertPoupMsg);
 
         function handleAlertClick() {
             setAlertOpen(true);
@@ -135,13 +139,16 @@ const Home = () => {
     //-------------------------*******For Confirm Delete-------------------------------
         const [openConfirmDelete, setOpenConfirmDelete] = useState(false);
         const [deleteId, setDeleteId] = useState('');
+        const[deletedName, setDeletedName] = useState("");
+        
 
         const handleDeleteClose = () => {
             setOpenConfirmDelete(false);
         };
-        const handleDelete = (id) =>{
+        const handleDelete = (id, name) =>{
             setOpenConfirmDelete(true);
             setDeleteId(id);
+            setDeletedName(name);
         }
 
         const handleDeleteCofirmed = () => {
@@ -155,16 +162,23 @@ const Home = () => {
 
                 if(validator(employee,0))
                 {
-                    let employeeIndex = employee.findIndex((updateUser => updateUser.id == deleteId));
+                    var employeeIndex = employee.findIndex((updateUser => updateUser.id == deleteId));
+                    console.log("index", employeeIndex)
                     let currentEmployee = validator(employee, employeeIndex)
                     ?  (employeeIndex === -1 ) 
                     ?   alert("Record Does not exists!") 
                         : employee.splice(employeeIndex,1)
                     : employee;
                 }
-
+                console.log(employee[employeeIndex]);
                 setEmployee(employee);
                 setOpenConfirmDelete(false);
+                setOpenAlertMsg(
+                    {
+                        "msg":"Employee Deleted Successfully.",
+                        "variant" : "error"
+                    });
+                handleAlertClick();
                 // if(typeof employee == 'object' ){
 
                 //     let employeeIndex = employee.findIndex((updateUser => updateUser.id == deleteId));
@@ -227,14 +241,22 @@ const Home = () => {
         //setEmployee(employee.map(employeeVal => (employeeVal.id === id ? updateUser : employee)));
         console.log("#after update ", employee);
         console.log("after Updating",id);
+        let msg ='';
         let employeeIndex = employee.findIndex((updateUser => updateUser.id == id));
         if (employeeIndex === -1) {
             employee.push(updateUser);// use spread operator
-            handleAlertClick();
+            msg = " added successfully";
         } else {
             console.log(employee);
             employee[employeeIndex] = updateUser;
+            msg = " updated successfully";
         }
+        setOpenAlertMsg(
+            {
+                "msg":"Employee "+ updateUser.firstName + msg,
+                "variant" : "success"
+            });
+        handleAlertClick();
         //setEmployee(employee);
         console.log("#newApproach", employee);
         setOpen(false);
@@ -366,7 +388,7 @@ async function fetchEmployeePositionIntialData()
                                     </Button>
                                 </span>
                                 <span>
-                                    <Button color="primary" onClickCapture={handleDelete.bind(null, record.id)}> 
+                                    <Button color="primary" onClickCapture={handleDelete.bind(null, record.id, record.firstName)}> 
                                         <DeleteIcon />
                                     </Button>
                                 </span>
@@ -385,6 +407,7 @@ async function fetchEmployeePositionIntialData()
                     handleClose = {handleClose}
                     employeePositionIntial = {employeePositionIntial}
                     updateUser = {updateUser}
+                    setDeletedName = {setDeletedName}
             />
             <Snackbar
                 anchorOrigin={{
@@ -397,8 +420,8 @@ async function fetchEmployeePositionIntialData()
             >
                     <MySnackbarContentWrapper
                     onClose={handleAlertClose}
-                    variant="success"
-                    message="The Employee Updated!"
+                    variant={openAlertMsg.variant}
+                    message={openAlertMsg.msg}
                     />
             </Snackbar>
             <Dialog
@@ -412,7 +435,7 @@ async function fetchEmployeePositionIntialData()
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete employee "Admin" ?
+                        Are you sure you want to delete employee {deletedName} ?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
